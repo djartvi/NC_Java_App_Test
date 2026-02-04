@@ -11,6 +11,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static client.Generator.generateToken;
+import static client.RestClient.ENDPOINT;
+import static config.TestConfig.API_KEY;
 
 @DisplayName("Действия авторизованного пользователя")
 public class ActionTest extends WireMockBaseTest {
@@ -111,7 +113,7 @@ public class ActionTest extends WireMockBaseTest {
         stubAuthSuccess();
 
         restClient.login();
-        restClient.baseEndpointRequest(restClient.getToken(), action);
+        restClient.customEndpointRequest(API_KEY, restClient.getToken(), action, ENDPOINT);
 
         verifyDoActionNotRequested();
     }

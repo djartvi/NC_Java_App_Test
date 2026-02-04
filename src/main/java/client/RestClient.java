@@ -1,6 +1,7 @@
 package client;
 
 import io.qameta.allure.Step;
+import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
@@ -35,9 +36,11 @@ public class RestClient {
         return given()
                 .contentType(ContentType.URLENC.withCharset("UTF-8"))
                 .accept(ContentType.JSON)
-                .baseUri(BASE_URL);
+                .baseUri(BASE_URL)
+                .filter(new AllureRestAssured());
     }
 
+    @Step("Запрос без API ключа")
     public Response noApiKeyRequest() {
         ValidatableResponse response = baseRequest()
                 .formParam(TOKEN_PARAM, token)
@@ -49,11 +52,7 @@ public class RestClient {
         return new Response(response);
     }
 
-    public Response baseEndpointRequest(String token, String action) {
-        return customEndpointRequest(API_KEY, token, action, ENDPOINT);
-    }
-
-    public Response customEndpointRequest(String apiKey, String token, String action, String endpoint) {
+    public Response baseEndpointRequest(String apiKey, String token, String action, String endpoint) {
         ValidatableResponse response = baseRequest()
                 .header("X-Api-Key", apiKey)
                 .formParam(TOKEN_PARAM, token)
@@ -66,9 +65,14 @@ public class RestClient {
         return new Response(response);
     }
 
+    @Step("Отправка запроса ключ={apiKey}, токен={token}, действие={action}, адрес={endpoint}")
+    public Response customEndpointRequest(String apiKey, String token, String action, String endpoint) {
+        return baseEndpointRequest(apiKey, token, action, endpoint);
+    }
+
     @Step("Логин")
     public Response login(String token) {
-        return baseEndpointRequest(token, ACTION_LOGIN);
+        return baseEndpointRequest(API_KEY, token, ACTION_LOGIN, ENDPOINT);
     }
 
     public Response login() {
@@ -77,7 +81,7 @@ public class RestClient {
 
     @Step("Действие")
     public Response action(String token) {
-        return baseEndpointRequest(token, ACTION_ACTION);
+        return baseEndpointRequest(API_KEY, token, ACTION_ACTION, ENDPOINT);
     }
 
     public Response action() {
@@ -86,13 +90,14 @@ public class RestClient {
 
     @Step("Завершение сессии")
     public Response logout(String token) {
-        return baseEndpointRequest(token, ACTION_LOGOUT);
+        return baseEndpointRequest(API_KEY, token, ACTION_LOGOUT, ENDPOINT);
     }
 
     public Response logout() {
         return logout(this.token);
     }
 
+    @Step("Запрос без токена")
     public Response noTokenParameterRequest(String action) {
         ValidatableResponse response = baseRequest()
                 .formParam(ACTION_PARAM, action)
@@ -103,6 +108,7 @@ public class RestClient {
         return new Response(response);
     }
 
+    @Step("Запрос без токена")
     public Response noActionParameterRequest(String token) {
         ValidatableResponse response = baseRequest()
                 .formParam(TOKEN_PARAM, token)
